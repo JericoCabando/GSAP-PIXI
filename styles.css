@@ -53,6 +53,9 @@ canvas {
 .orb-row__heading { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; font: 600 11px/1 "DM Mono", monospace; color: #b9cad5; }
 .orb-row__swatch { width: 8px; height: 8px; border-radius: 50%; }
 .orb-row__fields { display: grid; grid-template-columns: 1fr 92px; gap: 7px; }
+.orb-size { margin-bottom: 8px; }
+.orb-size__heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font: 600 11px/1 "DM Mono", monospace; color: #b9cad5; }
+.orb-size input { width: 100%; accent-color: #c8f46d; cursor: pointer; }
 .orb-row input[type="text"], .orb-row select { min-width: 0; height: 34px; padding: 0 9px; color: #f3efe2; border: 1px solid rgba(243,239,226,.15); border-radius: 8px; outline: none; background: #0d1b25; font-size: 12px; }
 .orb-row input:focus, .orb-row select:focus { border-color: #8bd8ee; box-shadow: 0 0 0 2px rgba(139,216,238,.12); }
 .orb-row__avatar { grid-column: 1 / -1; position: relative; height: 32px; }

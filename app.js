@@ -30,7 +30,7 @@
   const objectLayer = new PIXI.Container();
   const ui = new PIXI.Container();
   const cursor = new PIXI.Graphics();
-  const sizeRadii = { small: 36, medium: 48, large: 62 };
+  let ballRadius = 28;
 
   const mono = (size, fill = palette.cream) => ({
     fontFamily: 'DM Mono, monospace', fontSize: size, fontWeight: '500', fill,
@@ -70,17 +70,13 @@
   function makeOrb(config) {
     const c = new PIXI.Container();
     const g = new PIXI.Graphics();
-    const label = new PIXI.Text({ text: config.label, style: mono(16, palette.ink) });
     const avatar = new PIXI.Sprite();
     const avatarMask = new PIXI.Graphics();
-    const labelPlate = new PIXI.Graphics();
-    label.anchor.set(.5);
-    label.y = 2;
     avatar.anchor.set(.5);
     avatar.visible = false;
     avatar.mask = avatarMask;
 
-    c.addChild(g, avatar, avatarMask, labelPlate, label);
+    c.addChild(g, avatar, avatarMask);
     c.eventMode = 'static';
     c.cursor = 'grab';
     c.hitArea = new PIXI.Circle(0, 0, config.radius + 12);
@@ -88,7 +84,7 @@
     c.y = config.y;
     c.alpha = 0;
     c.scale.set(.35);
-    c.data = { ...config, size: config.size || 'medium', vx: 0, vy: 0, history: [], baseScale: 1, g, label, labelPlate, avatar, avatarMask };
+    c.data = { ...config, vx: 0, vy: 0, history: [], baseScale: 1, g, avatar, avatarMask };
     redrawOrb(c);
     objectLayer.addChild(c);
     objects.push(c);
@@ -96,14 +92,16 @@
   }
 
   function buildObjects() {
-    makeOrb({ label: 'GSAP', color: palette.coral, radius: 62, size: 'large', x: W * .65, y: H * .38 });
-    makeOrb({ label: 'PIXI', color: palette.blue, radius: 48, size: 'medium', x: W * .78, y: H * .62 });
-    makeOrb({ label: 'JS', color: palette.lime, radius: 36, size: 'small', x: W * .55, y: H * .7 });
+    const colors = [palette.cream, 0xf4d03f, 0x3498db, 0xe74c3c, 0x8e44ad, 0xf39c12, 0x27ae60, 0x922b21, 0x111820, 0xf1c40f, 0x2980b9, 0xc0392b, 0x7d3c98, 0xd35400, 0x229954, 0x641e16];
+    colors.forEach((color, index) => makeOrb({
+      name: index === 0 ? 'Admin ball' : `Ball ${index}`,
+      color, radius: ballRadius, x: W * .7, y: H * .5,
+    }));
     buildOrbEditor();
   }
 
   function redrawOrb(o) {
-    const { g, label, labelPlate, avatar, avatarMask } = o.data;
+    const { g, avatar, avatarMask } = o.data;
     const r = o.data.radius;
     g.clear().circle(0, 0, r + 6).fill({ color: palette.ink })
       .stroke({ color: o.data.color, width: 1, alpha: .35 })
@@ -113,16 +111,6 @@
       const sourceWidth = avatar.texture.width || 1;
       const sourceHeight = avatar.texture.height || 1;
       avatar.scale.set((r * 2) / Math.min(sourceWidth, sourceHeight));
-    }
-    label.style._fontSize = Math.max(12, Math.round(r * .3));
-    label.text = o.data.label._text || 'BALL';
-    label.scale.set(1);
-    const maxWidth = r * 1.45;
-    if (label.width > maxWidth) label.scale.set(maxWidth / label.width);
-    labelPlate.clear();
-    if (avatar.visible) {
-      const plateWidth = Math.min(maxWidth, label.width) + 16;
-      labelPlate.roundRect(-plateWidth / 2, -12, plateWidth, 26, 13).fill({ color: palette.cream, alpha: .82 });
     }
     o.hitArea = new PIXI.Circle(0, 0, r + 12);
     o.x = Math.max(r, Math.min(W - r, o.x));
@@ -139,28 +127,29 @@
       toggle.querySelector('b').textContent = collapsed ? '+' : '−';
     });
 
+    const sizeControl = document.createElement('section');
+    sizeControl.className = 'orb-row orb-size';
+    sizeControl.innerHTML = `<div class="orb-size__heading"><span>All ball sizes</span><output>${ballRadius * 2}px</output></div>
+      <input type="range" min="16" max="52" value="${ballRadius}" aria-label="Size of all balls">`;
+    const sizeInput = sizeControl.querySelector('input');
+    const sizeOutput = sizeControl.querySelector('output');
+    sizeInput.addEventListener('input', () => {
+      ballRadius = Number(sizeInput.value);
+      sizeOutput.textContent = `${ballRadius * 2}px`;
+      objects.forEach(o => { o.data.radius = ballRadius; redrawOrb(o); });
+      arrangeBalls();
+    });
+    settings.appendChild(sizeControl);
+
     objects.forEach((o, index) => {
       const row = document.createElement('section');
       row.className = 'orb-row';
-      row.innerHTML = `<div class="orb-row__heading"><span class="orb-row__swatch"></span>Ball ${index + 1}</div>
+      row.innerHTML = `<div class="orb-row__heading"><span class="orb-row__swatch"></span>${o.data.name}</div>
         <div class="orb-row__fields">
-          <input type="text" maxlength="18" aria-label="Ball ${index + 1} text">
-          <select aria-label="Ball ${index + 1} size"><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select>
-          <div class="orb-row__avatar"><input id="avatar-${index}" type="file" accept="image/*"><label for="avatar-${index}">+ Add avatar image</label></div>
+          <div class="orb-row__avatar"><input id="avatar-${index}" type="file" accept="image/*"><label for="avatar-${index}">+ Add custom background</label></div>
         </div>`;
       row.querySelector('.orb-row__swatch').style.background = `#${o.data.color.toString(16).padStart(6, '0')}`;
-      const textInput = row.querySelector('input[type="text"]');
-      const select = row.querySelector('select');
       const fileInput = row.querySelector('input[type="file"]');
-      textInput.value = o.data.label.text;
-      select.value = o.data.size;
-      textInput.addEventListener('input', () => { o.data.label.text = textInput.value; redrawOrb(o); });
-      select.addEventListener('change', () => {
-        o.data.size = select.value;
-        o.data.radius = sizeRadii[select.value];
-        redrawOrb(o);
-        gsap.fromTo(o.scale, { x: .88, y: .88 }, { x: 1, y: 1, duration: .35, ease: 'back.out(2)' });
-      });
       fileInput.addEventListener('change', () => {
         const file = fileInput.files[0];
         if (!file) return;
@@ -170,7 +159,7 @@
           o.data.avatar.texture = PIXI.Texture.from(image);
           o.data.avatar.visible = true;
           redrawOrb(o);
-          row.querySelector('.orb-row__avatar label').textContent = `Change: ${file.name}`;
+          row.querySelector('.orb-row__avatar label').textContent = `Change background: ${file.name}`;
           URL.revokeObjectURL(url);
         };
         image.onerror = () => URL.revokeObjectURL(url);
@@ -191,7 +180,7 @@
     ui.addChild(title);
 
     const copy = new PIXI.Text({
-      text: 'THREE OBJECTS. ZERO RULES.\nGRAB, DRAG, AND THROW.',
+      text: 'ONE ADMIN. FIFTEEN BALLS.\nGRAB, DRAG, AND THROW.',
       style: mono(12, 0xaec0cb),
     });
     copy.name = 'copy';
@@ -209,7 +198,7 @@
     hint.addChild(capsule, hintText);
     ui.addChild(hint);
 
-    const number = new PIXI.Text({ text: '03', style: sans(22, '800', palette.lime) });
+    const number = new PIXI.Text({ text: '16', style: sans(22, '800', palette.lime) });
     number.name = 'number';
     ui.addChild(number);
 
@@ -255,15 +244,37 @@
     hint.position.set(compact ? 24 : 54, H - 76);
     number.position.set(W - (compact ? 55 : 82), 30);
 
-    if (!drag) {
-      const positions = compact
-        ? [[W * .68, H * .44], [W * .28, H * .68], [W * .76, H * .76]]
-        : [[W * .68, H * .37], [W * .79, H * .65], [W * .55, H * .72]];
-      objects.forEach((o, i) => {
-        o.x = Math.max(o.data.radius + 8, Math.min(W - o.data.radius - 8, positions[i][0]));
-        o.y = Math.max(o.data.radius + 8, Math.min(H - o.data.radius - 8, positions[i][1]));
-      });
+    if (!drag) arrangeBalls();
+  }
+
+  function arrangeBalls() {
+    if (!objects.length) return;
+    const compact = W < 720;
+    const gap = Math.max(2, ballRadius * .1);
+    const diameter = ballRadius * 2 + gap;
+    const rowStep = diameter * .87;
+    const rackCenterX = compact ? W * .55 : W * .75;
+    const rackCenterY = compact ? H * .64 : H * .54;
+    const adminX = compact ? W * .22 : W * .51;
+
+    objects[0].position.set(adminX, rackCenterY);
+    let index = 1;
+    for (let row = 0; row < 5; row++) {
+      const x = rackCenterX - rowStep * 2 + row * rowStep;
+      for (let slot = 0; slot <= row; slot++) {
+        const y = rackCenterY + (slot - row / 2) * diameter;
+        objects[index].position.set(x, y);
+        objects[index].data.vx = objects[index].data.vy = 0;
+        index++;
+      }
     }
+
+    objects.forEach(o => {
+      const r = o.data.radius;
+      o.x = Math.max(r + 4, Math.min(W - r - 4, o.x));
+      o.y = Math.max(r + 4, Math.min(H - r - 4, o.y));
+      o.data.history.length = 0;
+    });
   }
 
   function intro() {

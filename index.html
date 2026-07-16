@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#071019" />
+  <title>Orbit Lab — PixiJS Throwables</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app" aria-label="Interactive Orbit Lab canvas"></main>
+  <aside class="orb-editor" aria-labelledby="orb-editor-title">
+    <button class="orb-editor__toggle" type="button" aria-expanded="true" aria-controls="orb-controls">
+      <span><i></i> Ball settings</span><b aria-hidden="true">&minus;</b>
+    </button>
+    <div id="orb-controls" class="orb-editor__body">
+      <p id="orb-editor-title">Customize the orbit</p>
+      <div id="orb-settings"></div>
+    </div>
+  </aside>
+  <p id="fallback" role="status">Loading orbit lab…</p>
+
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@8.6.6/dist/pixi.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -4,14 +4,35 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#071019" />
-  <title>Orbit Lab — PixiJS Throwables</title>
+  <title>Orbit Pocket — Pool Game</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main id="app" aria-label="Interactive Orbit Lab canvas"></main>
+  <main id="app" aria-label="Orbit Pocket game canvas"></main>
+
+  <div id="score-hud" class="score-hud" aria-live="polite">
+    <div class="score-hud__block score-hud__block--you">
+      <span class="score-hud__label">You</span>
+      <strong id="score-value">0</strong>
+    </div>
+    <div class="score-hud__block score-hud__block--ai">
+      <span class="score-hud__label">AI Rival</span>
+      <strong id="ai-score-value">0</strong>
+    </div>
+    <div class="score-hud__block">
+      <span class="score-hud__label">Remaining</span>
+      <strong id="pocketed-value">15 / 15</strong>
+    </div>
+
+    <div class="score-hud__block score-hud__block--turn">
+      <span class="score-hud__label">Turn</span>
+      <strong id="turn-value">Your turn</strong>
+    </div>
+  </div>
+
   <aside class="orb-editor" aria-labelledby="orb-editor-title">
     <button class="orb-editor__toggle" type="button" aria-expanded="true" aria-controls="orb-controls">
       <span><i></i> Ball settings</span><b aria-hidden="true">&minus;</b>
@@ -21,7 +42,21 @@
       <div id="orb-settings"></div>
     </div>
   </aside>
-  <p id="fallback" role="status">Loading orbit lab…</p>
+
+  <div id="game-modal" class="game-modal" hidden aria-hidden="true">
+    <div class="game-modal__backdrop"></div>
+    <div class="game-modal__card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="game-modal__glow" aria-hidden="true"></div>
+      <div class="game-modal__confetti" id="modal-confetti" aria-hidden="true"></div>
+      <p class="game-modal__eyebrow" id="modal-eyebrow">Mission complete</p>
+      <h2 id="modal-title">You Win!</h2>
+      <p id="modal-message">Every ball found its orbit — except your cue.</p>
+      <p class="game-modal__score" id="modal-score">Final score: 0</p>
+      <button id="modal-retry" type="button" class="game-modal__retry">Play Again</button>
+    </div>
+  </div>
+
+  <p id="fallback" role="status">Loading orbit pocket…</p>
 
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@8.6.6/dist/pixi.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
